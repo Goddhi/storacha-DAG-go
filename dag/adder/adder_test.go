@@ -18,8 +18,16 @@ func TestDefaultAdderOptions(t *testing.T) {
 		name string
 		want AdderOptions
 	}{
-		// TODO: Add test cases.
-	}
+		{
+			name: "default options are set correctly",
+			want: AdderOptions{
+				ChunkSize:     DefaultChunkSize,  // "size-1048576"
+				MaxLinks:      MaxLinks,          // 1048576
+				RawLeaves:     UseRawLeaves,      // true
+				CidBuilder:    DefaultCidBuilder, // dag.V1CidPrefix()
+				LiveCacheSize: LiveCacheSize,     // 256 << 10
+			},
+		}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := DefaultAdderOptions(); !reflect.DeepEqual(got, tt.want) {
