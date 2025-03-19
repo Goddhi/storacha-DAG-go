@@ -15,8 +15,9 @@ import (
 
 func TestDefaultAdderOptions(t *testing.T) {
 	tests := []struct {
-		name string
-		want AdderOptions
+		name       string
+		want       AdderOptions
+		shouldFail bool
 	}{
 		{
 			name: "default options are set correctly",
@@ -27,11 +28,67 @@ func TestDefaultAdderOptions(t *testing.T) {
 				CidBuilder:    DefaultCidBuilder, // dag.V1CidPrefix()
 				LiveCacheSize: LiveCacheSize,     // 256 << 10
 			},
-		}}
+			shouldFail: false,
+		},
+		{
+			name: "incorrect chunk size",
+			want: AdderOptions{
+				ChunkSize:     "size-512000", // Wrong value
+				MaxLinks:      MaxLinks,
+				RawLeaves:     UseRawLeaves,
+				CidBuilder:    DefaultCidBuilder,
+				LiveCacheSize: LiveCacheSize,
+			},
+			shouldFail: true,
+		},
+		{
+			name: "incorrect max links",
+			want: AdderOptions{
+				ChunkSize:     DefaultChunkSize,
+				MaxLinks:      2000000, // Wrong value
+				RawLeaves:     UseRawLeaves,
+				CidBuilder:    DefaultCidBuilder,
+				LiveCacheSize: LiveCacheSize,
+			},
+			shouldFail: true,
+		},
+		{
+			name: "incorrect raw leaves",
+			want: AdderOptions{
+				ChunkSize:     DefaultChunkSize,
+				MaxLinks:      MaxLinks,
+				RawLeaves:     false, // Wrong value
+				CidBuilder:    DefaultCidBuilder,
+				LiveCacheSize: LiveCacheSize,
+			},
+			shouldFail: true,
+		},
+		{
+			name: "incorrect live cache size",
+			want: AdderOptions{
+				ChunkSize:     DefaultChunkSize,
+				MaxLinks:      MaxLinks,
+				RawLeaves:     UseRawLeaves,
+				CidBuilder:    DefaultCidBuilder,
+				LiveCacheSize: 1024 * 1024, // Wrong value
+			},
+			shouldFail: true,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := DefaultAdderOptions(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DefaultAdderOptions() = %v, want %v", got, tt.want)
+			got := DefaultAdderOptions()
+			equal := reflect.DeepEqual(got, tt.want)
+
+			if tt.shouldFail {
+				if equal {
+					t.Errorf("DefaultAdderOptions() = %v, should not equal %v", got, tt.want)
+				}
+			} else {
+				if !equal {
+					t.Errorf("DefaultAdderOptions() = %v, want %v", got, tt.want)
+				}
 			}
 		})
 	}
